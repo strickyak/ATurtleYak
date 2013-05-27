@@ -135,8 +135,8 @@ public class TurtleActivity extends Activity {
 
 	void doRoot() {
 		String[] commands = { "/push to web", "/save to file",
-				"/pull from web", "/load from file", "/clear all", "/---" };
-		String[] labels = new String[52 + commands.length];
+				"/pull from web", "/load from file", "/clear all", "/HELP" };
+		String[] labels = new String[3*26 + commands.length];
 		for (int i = 0; i < commands.length; i++) {
 			labels[i] = commands[i];
 		}
@@ -144,13 +144,22 @@ public class TurtleActivity extends Activity {
 			String k = "" + (char) ('A' + i);
 			int j = commands.length + i;
 			String v = boxes.get(k);
-			labels[j] = "/box/" + k + " == " + CurlyEncode(v == null ? "" : v);
+			labels[j] = "/box/" + k + " == "
+					+ TranslateControlsToSpaces(v == null ? "" : v);
 		}
 		for (int i = 0; i < 26; i++) {
 			String k = "" + (char) ('A' + i) + (char) ('A' + i);
 			int j = commands.length + i + 26;
 			String v = boxes.get(k);
-			labels[j] = "/box" + k + " == " + CurlyEncode(v == null ? "" : v);
+			labels[j] = "/box/" + k + " == "
+					+ TranslateControlsToSpaces(v == null ? "" : v);
+		}
+		for (int i = 0; i < 26; i++) {
+			String k = "" + (char) ('A' + i) + (char) ('A' + i) + (char) ('A' + i);
+			int j = commands.length + i + 26 + 26;
+			String v = boxes.get(k);
+			labels[j] = "/box/" + k + " == "
+					+ TranslateControlsToSpaces(v == null ? "" : v);
 		}
 		AListView lv = new AListViewOfActivityUris(this, labels,
 				TurtleActivity.class);
@@ -234,9 +243,6 @@ public class TurtleActivity extends Activity {
 			}
 			message = "All Cleared.";
 
-		} else if (path[0].equals("---")) {
-			message = "Hello World!";
-
 		} else if (path[0].equals("load")) {
 			if (path.length == 1) {
 				File dir = getFilesDir();
@@ -257,12 +263,43 @@ public class TurtleActivity extends Activity {
 						TurtleActivity.class);
 				setContentView(lv);
 				return;
+
 			} else {
 				String filename = path[1];
 				String guts = readFile(filename);
 				unpickle(guts);
 				message = Fmt("Loaded from file %s\n-----\n%s", path[1], guts);
 			}
+
+		} else if (path[0].equals("HELP")) {
+			// @formatter:off
+			message = "This is a Logo-like language with Turtle Graphics.\n"
+					+ "(Use Google & Wikipedia.)\n" 
+					+ "\n"
+					+ "Code is stored in named boxes (A, B, C, ... AA, BB, ...), "
+					+ "which can be run or called as subroutines from other code.\n"
+					+ "\n"
+					+ "f N = move Forward distance N.\n"
+					+ "l N = turn Left N degrees.\n"
+					+ "r N = turn Right N degrees.\n"
+					+ "u = pen Up (stop drawing).\n"
+					+ "d = pen Down (draw again).\n" + "c N = use Color N\n"
+					+ "     900 = red\n" 
+					+ "     90 = green\n"
+					+ "     9 = blue\n" 
+					+ "     0 = black\n"
+					+ "     999 = white.\n"
+					+ "( commands... ) N = repeat commands N times.\n"
+					+ "/x = call box /X as a subroutine\n"
+					+ "; = end commands and begin comment thru EOF.\n" 
+					+ "\n"
+					+ "There are no variables, no conditionals, and "
+					+ "so recursion is a bad idea, since you can't stop it.\n"
+					+ "\n" 
+					+ "You may Save and Load from private files.\n"
+					+ "You may Push and Pull from public web files.\n" 
+					+ "";
+			// @formatter:on
 
 		} else {
 			message = Fmt("Bad command: %s", path[0]);
@@ -313,7 +350,7 @@ public class TurtleActivity extends Activity {
 							v.add((float) xx);
 							v.add((float) yy);
 							v.add((float) color);
-							//Log.v("COLOR", ""+color);
+							// Log.v("COLOR", ""+color);
 						}
 						x = xx;
 						y = yy;
@@ -702,6 +739,20 @@ public class TurtleActivity extends Activity {
 					throw Barf("Bad closing curly: ", "" + (int) c);
 				}
 				sb.append((char) x);
+			} else {
+				sb.append(c);
+			}
+		}
+		return sb.toString();
+	}
+
+	public static String TranslateControlsToSpaces(String s) {
+		final int n = s.length();
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < n; i++) {
+			char c = s.charAt(i);
+			if (c < ' ') {
+				sb.append(' ');
 			} else {
 				sb.append(c);
 			}
