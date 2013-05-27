@@ -220,25 +220,30 @@ public final class Views {
 			black.setColor(Color.BLACK);
 			canvas.drawPaint(black);
 
-			Paint green = new Paint();
-			green.setColor(Color.GREEN);
-			green.setStrokeWidth(4);
+			Paint ink = new Paint();
+			ink.setColor(Color.GREEN);
+			ink.setStrokeWidth(4);
 
 			int w = canvas.getWidth();
 			int h = canvas.getHeight();
-			int m = (w < h) ? w : h;
-			float ww = m / 100.0f;
-			float hh = m / 100.0f;
-//			float ww = w / 100.0f;
-//			float hh = h / 100.0f;
+			int min = (w < h) ? w : h;
+			float ww = min / 100.0f;
+			float hh = min / 100.0f;
 
-			final int n = lines.size() / 4;
+			final int n = lines.size() / 5;
 			for (int i = 0; i < n; i++) {
-				float x1 = ww * lines.get(4 * i + 0);
-				float y1 = hh * lines.get(4 * i + 1);
-				float x2 = ww * lines.get(4 * i + 2);
-				float y2 = hh * lines.get(4 * i + 3);
-				canvas.drawLine(x1, y1, x2, y2, green);
+				float x1 = ww * lines.get(5 * i + 0);
+				float y1 = hh * lines.get(5 * i + 1);
+				float x2 = ww * lines.get(5 * i + 2);
+				float y2 = hh * lines.get(5 * i + 3);
+				float clr = lines.get(5 * i + 4);
+				int red = (int)(clr / 100) % 10;
+				int green = (int)(clr / 10) % 10;
+				int blue = (int)(clr / 1) % 10;
+				//Log.v("color", String.format("(%f,%f) (%f,%f) %f %d %d %d", x1, y1, x2, y2, clr, red, green, blue));
+				int c = Color.rgb(red * 255 / 9, green * 255 / 9, blue * 255 / 9);
+				ink.setColor(c);
+				canvas.drawLine(x1, y1, x2, y2, ink);
 			}
 		}
 	}

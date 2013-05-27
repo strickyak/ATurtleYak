@@ -281,6 +281,7 @@ public class TurtleActivity extends Activity {
 	}
 
 	class LogoMachine {
+		double color = 999;
 		double x = 50; // turtle position
 		double y = 50;
 		double a = 0; // angle
@@ -292,6 +293,7 @@ public class TurtleActivity extends Activity {
 			final int n = words.length;
 			for (int i = 0; i < n; i++) {
 				String w = words[i];
+				Log.v("runLogo#", w + ";i=" + i);
 				// x = (x + 1000000) % 100.0;
 				// y = (y + 1000000) % 100.0;
 				if (w.charAt(0) == 'f') { // Forward
@@ -310,6 +312,8 @@ public class TurtleActivity extends Activity {
 							v.add((float) y);
 							v.add((float) xx);
 							v.add((float) yy);
+							v.add((float) color);
+							//Log.v("COLOR", ""+color);
 						}
 						x = xx;
 						y = yy;
@@ -336,20 +340,28 @@ public class TurtleActivity extends Activity {
 						double d = parseDouble(w);
 						a += d;
 					}
+				} else if (w.charAt(0) == 'c') { // color
+					if (w.length() > 1) {
+						w = w.substring(1); // allow omit space
+					} else {
+						++i;
+						w = (i < n) ? words[i] : "<EOF>";
+					}
+					if (i < n) {
+						double d = parseDouble(w);
+						color = ((int) d % 1000);
+					}
 				} else if (w.equals("u")) { // pen up
 					down = false;
-					++i;
 				} else if (w.equals("d")) { // pen down
 					down = true;
-					++i;
 				} else if (w.charAt(0) == '/') { // subroutine
 					String key = w.substring(1).toUpperCase();
 					String code = boxes.get(key);
 					if (code != null) {
 						runLogo(parseLogo(code));
 					}
-					++i;
-				} else if (w.equals("!") || w.equals("(")) { // begin
+				} else if (w.equals("!") || w.equals("(")) { // block
 					++i;
 					w = (i < n) ? words[i] : "<EOF>";
 					int level = 0;
