@@ -134,8 +134,8 @@ public class TurtleActivity extends Activity {
 	}
 
 	void doRoot() {
-		String[] commands = { "/push to web", "/save to file", "/pull from web", "/load from file",
-				"/clear all", "/---" };
+		String[] commands = { "/push to web", "/save to file",
+				"/pull from web", "/load from file", "/clear all", "/---" };
 		String[] labels = new String[52 + commands.length];
 		for (int i = 0; i < commands.length; i++) {
 			labels[i] = commands[i];
@@ -180,11 +180,11 @@ public class TurtleActivity extends Activity {
 		if (path[0].equals("run")) {
 			doRun(path[1]);
 			return;
-			
+
 		} else if (path[0].equals("box")) {
 			doBox(path[1]);
 			return;
-			
+
 		} else if (path[0].equals("push")) {
 			long now = System.currentTimeMillis() / 1000;
 			String filename = Fmt("logo_%d", now);
@@ -233,10 +233,10 @@ public class TurtleActivity extends Activity {
 				boxes.put(s, "");
 			}
 			message = "All Cleared.";
-			
+
 		} else if (path[0].equals("---")) {
 			message = "Hello World!";
-			
+
 		} else if (path[0].equals("load")) {
 			if (path.length == 1) {
 				File dir = getFilesDir();
@@ -263,7 +263,7 @@ public class TurtleActivity extends Activity {
 				unpickle(guts);
 				message = Fmt("Loaded from file %s\n-----\n%s", path[1], guts);
 			}
-			
+
 		} else {
 			message = Fmt("Bad command: %s", path[0]);
 		}
@@ -294,29 +294,46 @@ public class TurtleActivity extends Activity {
 				String w = words[i];
 				// x = (x + 1000000) % 100.0;
 				// y = (y + 1000000) % 100.0;
-				if (w.equals("f")) { // Forward
-					++i;
+				if (w.charAt(0) == 'f') { // Forward
+					if (w.length() > 1) {
+						w = w.substring(1); // allow omit space
+					} else {
+						++i;
+						w = (i < n) ? words[i] : "<EOF>";
+					}
 					if (i < n) {
-						double d = parseDouble(words[i]);
+						double d = parseDouble(w);
 						double xx = x + d * Math.cos(a / 180.0 * Math.PI);
 						double yy = y + d * Math.sin(a / 180.0 * Math.PI);
-						v.add((float) x);
-						v.add((float) y);
-						v.add((float) xx);
-						v.add((float) yy);
+						if (down) {
+							v.add((float) x);
+							v.add((float) y);
+							v.add((float) xx);
+							v.add((float) yy);
+						}
 						x = xx;
 						y = yy;
 					}
-				} else if (w.equals("l")) { // Left
-					++i;
+				} else if (w.charAt(0) == 'l') { // Left
+					if (w.length() > 1) {
+						w = w.substring(1); // allow omit space
+					} else {
+						++i;
+						w = (i < n) ? words[i] : "<EOF>";
+					}
 					if (i < n) {
-						double d = parseDouble(words[i]);
+						double d = parseDouble(w);
 						a -= d;
 					}
-				} else if (w.equals("r")) { // right
-					++i;
+				} else if (w.charAt(0) == 'r') { // right
+					if (w.length() > 1) {
+						w = w.substring(1); // allow omit space
+					} else {
+						++i;
+						w = (i < n) ? words[i] : "<EOF>";
+					}
 					if (i < n) {
-						double d = parseDouble(words[i]);
+						double d = parseDouble(w);
 						a += d;
 					}
 				} else if (w.equals("u")) { // pen up
@@ -332,27 +349,27 @@ public class TurtleActivity extends Activity {
 						runLogo(parseLogo(code));
 					}
 					++i;
-				} else if (w.equals("b") || w.equals("(")) { // begin
+				} else if (w.equals("!") || w.equals("(")) { // begin
 					++i;
 					w = (i < n) ? words[i] : "<EOF>";
 					int level = 0;
 					ArrayList<String> t = new ArrayList<String>();
 
 					while (i < n
-							&& (level > 0 || !(w.equals("e") || w.equals(")")))) {
+							&& (level > 0 || !(w.equals("?") || w.equals(")")))) {
 						Log.v("adding", w + " @" + level + " *** " + i + "/"
 								+ n);
 						t.add(w);
-						if (w.equals("b") || w.equals("(")) {
+						if (w.equals("!") || w.equals("(")) {
 							level++;
 						}
-						if (w.equals("e") || w.equals(")")) {
+						if (w.equals("?") || w.equals(")")) {
 							level--;
 						}
 						++i;
 						w = (i < n) ? words[i] : "<EOF>";
 					}
-					i++; // Advance past 'e' or ')'
+					i++; // Advance past '?' or ')'
 					w = (i < n) ? words[i] : "<EOF>";
 
 					Log.v("endBlock", (i < n) ? words[i] : "<EOF>");
@@ -406,14 +423,61 @@ public class TurtleActivity extends Activity {
 	}
 
 	double parseDouble(String s) {
-		if (s.length() == 1 && 'a' <= s.charAt(0) && s.charAt(0) <= 'z') {
-			// Shortcut 'a' thru 'z' are 1 thru 26.
-			return 5 * (s.charAt(0) - 'a' + 1);
+		final int n = s.length();
+		double roman = 0;
+		int level = 0;
+		for (int i = n - 1; i >= 0; i--) {
+			char c = s.charAt(i);
+			switch (c) {
+			case 'i':
+				if (level > 1) {
+					roman -= 1;
+				} else {
+					roman += 1;
+					level = 1;
+				}
+				break;
+			case 'v':
+				if (level > 5) {
+					roman -= 5;
+				} else {
+					roman += 5;
+					level = 5;
+				}
+				break;
+			case 'x':
+				if (level > 10) {
+					roman -= 10;
+				} else {
+					roman += 10;
+					level = 10;
+				}
+				break;
+			case 'l':
+				if (level > 50) {
+					roman -= 50;
+				} else {
+					roman += 50;
+					level = 50;
+				}
+				break;
+			case 'c':
+				if (level > 100) {
+					roman -= 100;
+				} else {
+					roman += 100;
+					level = 100;
+				}
+				break;
+			default:
+				return Double.parseDouble(s);
+			}
 		}
-		return Double.parseDouble(s);
+		return roman;
 	}
 
 	String[] parseLogo(String a) {
+		a = a.split(";")[0]; // Comment is ';' thru EOF.
 		return removeEmptyStrings(a.split("[\\t\\n\\r ]+"));
 	}
 
@@ -670,12 +734,12 @@ public class TurtleActivity extends Activity {
 	public static String Fmt(String s, Object... args) {
 		return String.format(s, args);
 	}
-	
+
 	public static void ReverseSort(String[] a) {
 		Arrays.sort(a, new Comparator<String>() {
 			@Override
 			public int compare(String lhs, String rhs) {
-				return rhs.compareTo(lhs);  // Reverse them.
+				return rhs.compareTo(lhs); // Reverse them.
 			}
 		});
 	}
