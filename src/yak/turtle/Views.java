@@ -74,7 +74,9 @@ public final class Views {
 
 		@Override
 		public void handleItemClick(String label) {
-			launchActivity(theContext, theClass, label, "");
+			// Only first word before " " is the URI.
+			String[] words = label.split(" ");
+			launchActivity(theContext, theClass, words[0], "");
 		}
 
 	}
@@ -131,6 +133,7 @@ public final class Views {
 			this.setBackgroundColor(Color.BLACK);
 			this.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
 			this.setTextColor(Color.YELLOW);
+			this.setVerticalScrollBarEnabled(true);
 		}
 	}
 
@@ -160,7 +163,7 @@ public final class Views {
 		final EditText ed;
 		String text;
 
-		AnEditView(Context cx, String text) {
+		AnEditView(Context cx, String text, String buttonText) {
 			super(cx);
 			this.theContext = cx;
 			this.text = text;
@@ -188,7 +191,7 @@ public final class Views {
 			});
 
 			btn = new Button(theContext);
-			btn.setText("Save");
+			btn.setText(buttonText);
 			btn.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
 					onSave(ed.getText().toString());
@@ -223,8 +226,11 @@ public final class Views {
 
 			int w = canvas.getWidth();
 			int h = canvas.getHeight();
-			float ww = w / 100.0f;
-			float hh = h / 100.0f;
+			int m = (w < h) ? w : h;
+			float ww = m / 100.0f;
+			float hh = m / 100.0f;
+//			float ww = w / 100.0f;
+//			float hh = h / 100.0f;
 
 			final int n = lines.size() / 4;
 			for (int i = 0; i < n; i++) {

@@ -4,5 +4,6 @@
     <string name="app_name">ATurtleYak</string>
     <string name="action_settings">A Turtle Yak Settings</string>
     <string name="hello_world">Hello world!</string>
+    <string name="top">TOP</string>
 
 </resources>
