@@ -330,7 +330,7 @@ public class TurtleActivity extends Activity {
 			final int n = words.length;
 			for (int i = 0; i < n; i++) {
 				String w = words[i];
-				Log.v("runLogo#", w + ";i=" + i);
+				//Log.v("runLogo#", w + ";i=" + i);
 				// x = (x + 1000000) % 100.0;
 				// y = (y + 1000000) % 100.0;
 				if (w.charAt(0) == 'f') { // Forward
@@ -406,8 +406,8 @@ public class TurtleActivity extends Activity {
 
 					while (i < n
 							&& (level > 0 || !(w.equals("?") || w.equals(")")))) {
-						Log.v("adding", w + " @" + level + " *** " + i + "/"
-								+ n);
+						//Log.v("adding", w + " @" + level + " *** " + i + "/"
+						//		+ n);
 						t.add(w);
 						if (w.equals("!") || w.equals("(")) {
 							level++;
@@ -428,13 +428,13 @@ public class TurtleActivity extends Activity {
 					for (int j = 0; j < block.length; j++) {
 						block[j] = t.get(j);
 					}
-					Log.v("block", Show(block));
+					//Log.v("block", Show(block));
 					if (i < n) {
 						double d = parseDouble(w);
-						i++;
-						w = (i < n) ? words[i] : "<EOF>";
+//						i++;
+//						w = (i < n) ? words[i] : "<EOF>";
 						for (int k = 0; k < d; k++) {
-							Log.v("iteration", "" + k);
+							//Log.v("iteration", "" + k);
 							runLogo(block);
 						}
 					}
