@@ -246,6 +246,39 @@ public final class Views {
 				canvas.drawLine(x1, y1, x2, y2, ink);
 			}
 		}
+		
+		public static class AKeyboard extends LinearLayout {
+			Context context;
+			LinearLayout bottom;
+
+			public AKeyboard(Context context) {
+				super(context);
+				this.context = context;
+				this.setOrientation(LinearLayout.VERTICAL);
+				this.setLayoutParams(FILL_1);
+				nextRow();
+			}
+			
+			public void nextRow() {
+				bottom = new LinearLayout(context);
+				bottom.setOrientation(LinearLayout.HORIZONTAL);
+				bottom.setLayoutParams(FILL_1);
+				this.addView(bottom);
+			}
+			
+			public void addButton(String label, final Runnable action) {
+				Button b = new Button(context);
+				b.setText(label);
+				b.setLayoutParams(FILL_1);
+				b.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						action.run();
+					}
+				});
+				bottom.addView(b);
+			}
+		}
 	}
 
 	public static LayoutParams FILL = new LayoutParams(

@@ -31,12 +31,14 @@ import yak.turtle.Views.AListViewOfActivityUris;
 import yak.turtle.Views.ATextView;
 import yak.turtle.Views.AnEditView;
 import yak.turtle.Views.DrawView;
+import yak.turtle.Views.DrawView.AKeyboard;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
 import android.app.LauncherActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources.Theme;
 import android.graphics.Color;
 import android.util.Log;
 import android.view.Menu;
@@ -46,6 +48,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Toast;
 
 public class TurtleActivity extends Activity {
 	static HashMap<String, String> boxes = new HashMap<String, String>();
@@ -135,7 +138,8 @@ public class TurtleActivity extends Activity {
 
 	void doRoot() {
 		String[] commands = { "/push to web", "/save to file",
-				"/pull from web", "/load from file", "/clear all", "/HELP" };
+				"/pull from web", "/load from file", "/clear all", "/HELP",
+				"/test_keyboard"};
 		String[] labels = new String[3*26 + commands.length];
 		for (int i = 0; i < commands.length; i++) {
 			labels[i] = commands[i];
@@ -189,6 +193,11 @@ public class TurtleActivity extends Activity {
 		if (path[0].equals("run")) {
 			doRun(path[1]);
 			return;
+
+		} else if (path[0].equals("test_keyboard")) {
+			doTestKeyboard();
+			return;
+
 
 		} else if (path[0].equals("box")) {
 			doBox(path[1]);
@@ -576,10 +585,6 @@ public class TurtleActivity extends Activity {
 				| Context.MODE_WORLD_WRITEABLE | Context.MODE_APPEND);
 	}
 
-	// public File getFilesDir() {
-	// return getFilesDir();
-	// }
-
 	public String readFile(String filename) {
 		StringBuilder sb = new StringBuilder();
 		try {
@@ -699,6 +704,48 @@ public class TurtleActivity extends Activity {
 			throw Barf(e, "Error during lostOfWebFiles");
 		}
 		return z;
+	}
+	
+	public void doTestKeyboard() {
+		AKeyboard k = new AKeyboard(this);
+		k.addButton("dup", new Toaster("dup"));
+		k.addButton("pop", new Toaster("pop"));
+		k.addButton("swap", new Toaster("swap"));
+		k.addButton("roll", new Toaster("roll"));
+		k.addButton("***", new Toaster("***"));
+		k.nextRow();
+		k.addButton("dup", new Toaster("dup"));
+		k.addButton("dup", new Toaster("dup"));
+		k.addButton("dup", new Toaster("dup"));
+		k.nextRow();
+		k.addButton("dup", new Toaster("dup"));
+		k.addButton("dup", new Toaster("dup"));
+		k.addButton("dup", new Toaster("dup"));
+		k.addButton("dup", new Toaster("dup"));
+		k.nextRow();
+		k.addButton("5", new Toaster("5"));
+		k.addButton("6", new Toaster("6"));
+		k.addButton("7", new Toaster("7"));
+		k.addButton("8", new Toaster("8"));
+		k.addButton("***", new Toaster("***"));
+		k.nextRow();
+		k.addButton("1", new Toaster("1"));
+		k.addButton("2", new Toaster("2"));
+		k.addButton("3", new Toaster("3"));
+		k.addButton("4", new Toaster("4"));
+		k.addButton("***", new Toaster("***"));
+		setContentView(k);
+	}
+	
+	public class Toaster implements Runnable {
+		String text;
+		public Toaster(String text) {
+			this.text = text;
+		}
+		@Override
+		public void run() {
+			Toast.makeText(TurtleActivity.this, "Toast [" + text + "]", Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	public static String CurlyEncode(String s) {
