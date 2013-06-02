@@ -139,8 +139,8 @@ public class TurtleActivity extends Activity {
 	void doRoot() {
 		String[] commands = { "/push to web", "/save to file",
 				"/pull from web", "/load from file", "/clear all", "/HELP",
-				"/test_keyboard"};
-		String[] labels = new String[3*26 + commands.length];
+				"/test_keyboard" };
+		String[] labels = new String[3 * 26 + commands.length];
 		for (int i = 0; i < commands.length; i++) {
 			labels[i] = commands[i];
 		}
@@ -159,7 +159,8 @@ public class TurtleActivity extends Activity {
 					+ TranslateControlsToSpaces(v == null ? "" : v);
 		}
 		for (int i = 0; i < 26; i++) {
-			String k = "" + (char) ('A' + i) + (char) ('A' + i) + (char) ('A' + i);
+			String k = "" + (char) ('A' + i) + (char) ('A' + i)
+					+ (char) ('A' + i);
 			int j = commands.length + i + 26 + 26;
 			String v = boxes.get(k);
 			labels[j] = "/box/" + k + " == "
@@ -197,7 +198,6 @@ public class TurtleActivity extends Activity {
 		} else if (path[0].equals("test_keyboard")) {
 			doTestKeyboard();
 			return;
-
 
 		} else if (path[0].equals("box")) {
 			doBox(path[1]);
@@ -283,31 +283,25 @@ public class TurtleActivity extends Activity {
 		} else if (path[0].equals("HELP")) {
 			// @formatter:off
 			message = "This is a Logo-like language with Turtle Graphics.\n"
-					+ "(Use Google & Wikipedia.)\n" 
+					+ "(Use Google & Wikipedia.)\n"
 					+ "\n"
 					+ "Code is stored in named boxes (A, B, C, ... AA, BB, ...), "
 					+ "which can be run or called as subroutines from other code.\n"
-					+ "\n"
-					+ "f N = move Forward distance N.\n"
+					+ "\n" + "f N = move Forward distance N.\n"
 					+ "l N = turn Left N degrees.\n"
 					+ "r N = turn Right N degrees.\n"
 					+ "u = pen Up (stop drawing).\n"
 					+ "d = pen Down (draw again).\n" + "c N = use Color N\n"
-					+ "     900 = red\n" 
-					+ "     90 = green\n"
-					+ "     9 = blue\n" 
-					+ "     0 = black\n"
+					+ "     900 = red\n" + "     90 = green\n"
+					+ "     9 = blue\n" + "     0 = black\n"
 					+ "     999 = white.\n"
 					+ "( commands... ) N = repeat commands N times.\n"
 					+ "/x = call box /X as a subroutine\n"
-					+ "; = end commands and begin comment thru EOF.\n" 
-					+ "\n"
+					+ "; = end commands and begin comment thru EOF.\n" + "\n"
 					+ "There are no variables, no conditionals, and "
 					+ "so recursion is a bad idea, since you can't stop it.\n"
-					+ "\n" 
-					+ "You may Save and Load from private files.\n"
-					+ "You may Push and Pull from public web files.\n" 
-					+ "";
+					+ "\n" + "You may Save and Load from private files.\n"
+					+ "You may Push and Pull from public web files.\n" + "";
 			// @formatter:on
 
 		} else {
@@ -319,9 +313,8 @@ public class TurtleActivity extends Activity {
 
 	void doRun(final String box) {
 		final String text = boxes.get(box);
-		LogoMachine machine = new LogoMachine();
 		String[] main = parseLogo(text);
-		ArrayList<Float> v = machine.runLogo(main);
+		ArrayList<Float> v = new LogoMachine(main).runLogo();
 		DrawView dv = new DrawView(this, v);
 		setContentView(dv);
 	}
@@ -333,133 +326,212 @@ public class TurtleActivity extends Activity {
 		double a = 0; // angle
 		boolean down = true;
 		final ArrayList<Float> v = new ArrayList<Float>();
+		final ArrayList<Float> loopVars = new ArrayList<Float>();
+		Block main;
 
-		ArrayList<Float> runLogo(String[] words) {
-			Log.v("runLogo", Show(words));
-			final int n = words.length;
-			for (int i = 0; i < n; i++) {
-				String w = words[i];
-				//Log.v("runLogo#", w + ";i=" + i);
-				// x = (x + 1000000) % 100.0;
-				// y = (y + 1000000) % 100.0;
-				if (w.charAt(0) == 'f') { // Forward
-					if (w.length() > 1) {
-						w = w.substring(1); // allow omit space
-					} else {
-						++i;
-						w = (i < n) ? words[i] : "<EOF>";
-					}
-					if (i < n) {
-						double d = parseDouble(w);
-						double xx = x + d * Math.cos(a / 180.0 * Math.PI);
-						double yy = y + d * Math.sin(a / 180.0 * Math.PI);
-						if (down) {
-							v.add((float) x);
-							v.add((float) y);
-							v.add((float) xx);
-							v.add((float) yy);
-							v.add((float) color);
-							// Log.v("COLOR", ""+color);
-						}
-						x = xx;
-						y = yy;
-					}
-				} else if (w.charAt(0) == 'l') { // Left
-					if (w.length() > 1) {
-						w = w.substring(1); // allow omit space
-					} else {
-						++i;
-						w = (i < n) ? words[i] : "<EOF>";
-					}
-					if (i < n) {
-						double d = parseDouble(w);
-						a -= d;
-					}
-				} else if (w.charAt(0) == 'r') { // right
-					if (w.length() > 1) {
-						w = w.substring(1); // allow omit space
-					} else {
-						++i;
-						w = (i < n) ? words[i] : "<EOF>";
-					}
-					if (i < n) {
-						double d = parseDouble(w);
-						a += d;
-					}
-				} else if (w.charAt(0) == 'c') { // color
-					if (w.length() > 1) {
-						w = w.substring(1); // allow omit space
-					} else {
-						++i;
-						w = (i < n) ? words[i] : "<EOF>";
-					}
-					if (i < n) {
-						double d = parseDouble(w);
-						color = ((int) d % 1000);
-					}
-				} else if (w.equals("u")) { // pen up
-					down = false;
-				} else if (w.equals("d")) { // pen down
-					down = true;
-				} else if (w.charAt(0) == '/') { // subroutine
-					String key = w.substring(1).toUpperCase();
-					String code = boxes.get(key);
-					if (code != null) {
-						runLogo(parseLogo(code));
-					}
-				} else if (w.equals("!") || w.equals("(")) { // block
-					++i;
-					w = (i < n) ? words[i] : "<EOF>";
-					int level = 0;
-					ArrayList<String> t = new ArrayList<String>();
+		LogoMachine(String[] words) {
+			this.main = new Block(words);
+		}
 
-					while (i < n
-							&& (level > 0 || !(w.equals("?") || w.equals(")")))) {
-						//Log.v("adding", w + " @" + level + " *** " + i + "/"
-						//		+ n);
-						t.add(w);
-						if (w.equals("!") || w.equals("(")) {
-							level++;
-						}
-						if (w.equals("?") || w.equals(")")) {
-							level--;
-						}
-						++i;
-						w = (i < n) ? words[i] : "<EOF>";
-					}
-					i++; // Advance past '?' or ')'
-					w = (i < n) ? words[i] : "<EOF>";
-
-					Log.v("endBlock", (i < n) ? words[i] : "<EOF>");
-
-					// Copy into array.
-					String[] block = new String[t.size()];
-					for (int j = 0; j < block.length; j++) {
-						block[j] = t.get(j);
-					}
-					//Log.v("block", Show(block));
-					if (i < n) {
-						double d = parseDouble(w);
-//						i++;
-//						w = (i < n) ? words[i] : "<EOF>";
-						for (int k = 0; k < d; k++) {
-							//Log.v("iteration", "" + k);
-							runLogo(block);
-						}
-					}
-				} else {
-					throw new RuntimeException("Unknown Command: {" + w + "}");
-				}
-			}
+		ArrayList<Float> runLogo() {
+			this.main.runLogo();
 			return v;
 		}
+
+		class Block {
+			final String[] words;
+			int i;
+			final int n;
+			String w;
+
+			Block(String[] words) {
+				this.words = words;
+				this.n = words.length;
+			}
+
+			void runLogo() {
+				Log.v("runLogo", Show(words));
+				for (i = 0; i < n; i++) {
+					w = words[i];
+					if (w.charAt(0) == 'f') { // Forward
+						if (w.length() > 1) {
+							w = w.substring(1); // allow omit space
+						} else {
+							++i;
+							w = (i < n) ? words[i] : "<EOF>";
+						}
+						if (i < n) {
+							double d = parseDouble();
+							double xx = x + d * Math.cos(a / 180.0 * Math.PI);
+							double yy = y + d * Math.sin(a / 180.0 * Math.PI);
+							if (down) {
+								v.add((float) x);
+								v.add((float) y);
+								v.add((float) xx);
+								v.add((float) yy);
+								v.add((float) color);
+								// Log.v("COLOR", ""+color);
+							}
+							x = xx;
+							y = yy;
+						}
+					} else if (w.charAt(0) == 'l') { // Left
+						if (w.length() > 1) {
+							w = w.substring(1); // allow omit space
+						} else {
+							++i;
+							w = (i < n) ? words[i] : "<EOF>";
+						}
+						if (i < n) {
+							double d = parseDouble();
+							a -= d;
+						}
+					} else if (w.charAt(0) == 'r') { // right
+						if (w.length() > 1) {
+							w = w.substring(1); // allow omit space
+						} else {
+							++i;
+							w = (i < n) ? words[i] : "<EOF>";
+						}
+						if (i < n) {
+							double d = parseDouble();
+							a += d;
+						}
+					} else if (w.charAt(0) == 'c') { // color
+						if (w.length() > 1) {
+							w = w.substring(1); // allow omit space
+						} else {
+							++i;
+							w = (i < n) ? words[i] : "<EOF>";
+						}
+						if (i < n) {
+							double d = parseDouble();
+							color = ((int) d % 1000);
+						}
+					} else if (w.equals("u")) { // pen up
+						down = false;
+					} else if (w.equals("d")) { // pen down
+						down = true;
+					} else if (w.charAt(0) == '/') { // subroutine
+						String key = w.substring(1).toUpperCase();
+						String code = boxes.get(key);
+						if (code != null) {
+							new Block(parseLogo(code)).runLogo();
+						}
+					} else if (w.equals("!") || w.equals("(")) { // block
+						++i;
+						w = (i < n) ? words[i] : "<EOF>";
+						int level = 0;
+						ArrayList<String> t = new ArrayList<String>();
+
+						while (i < n
+								&& (level > 0 || !(w.equals("?") || w
+										.equals(")")))) {
+							t.add(w);
+							if (w.equals("!") || w.equals("(")) {
+								level++;
+							}
+							if (w.equals("?") || w.equals(")")) {
+								level--;
+							}
+							++i;
+							w = (i < n) ? words[i] : "<EOF>";
+						}
+						i++; // Advance past '?' or ')'
+						w = (i < n) ? words[i] : "<EOF>";
+
+						Log.v("endBlock", (i < n) ? words[i] : "<EOF>");
+
+						// Copy into array.
+						String[] blockWords = new String[t.size()];
+						for (int j = 0; j < blockWords.length; j++) {
+							blockWords[j] = t.get(j);
+						}
+						if (i < n) {
+							double d = parseDouble();
+							// Add a new final slot to loopVars, for the
+							// upcoming loop.
+							final int last = loopVars.size();
+							loopVars.add(0.0f);
+							try {
+								for (int k = 0; k < d - 0.5; k++) {
+									loopVars.set(last, (float) k);
+									new Block(blockWords).runLogo();
+								}
+							} finally {
+								loopVars.remove(last);
+							}
+						}
+					} else {
+						throw new RuntimeException("Unknown Command: {" + w
+								+ "}");
+					}
+				}
+			}
+			
+			double parseDouble() {
+				final int n = w.length();
+				double roman = 0;
+				int level = 0;
+				for (int i = n - 1; i >= 0; i--) {
+					char c = w.charAt(i);
+					switch (c) {
+					case 'i':
+						if (level > 1) {
+							roman -= 1;
+						} else {
+							roman += 1;
+							level = 1;
+						}
+						break;
+					case 'v':
+						if (level > 5) {
+							roman -= 5;
+						} else {
+							roman += 5;
+							level = 5;
+						}
+						break;
+					case 'x':
+						if (level > 10) {
+							roman -= 10;
+						} else {
+							roman += 10;
+							level = 10;
+						}
+						break;
+					case 'l':
+						if (level > 50) {
+							roman -= 50;
+						} else {
+							roman += 50;
+							level = 50;
+						}
+						break;
+					case 'c':
+						if (level > 100) {
+							roman -= 100;
+						} else {
+							roman += 100;
+							level = 100;
+						}
+						break;
+					default:
+						return Double.parseDouble(w);
+					}
+				}
+				return roman;
+			}
+
+		}
+
 	}
 
 	String pickle() {
 		StringBuilder sb = new StringBuilder();
 		for (String k : boxes.keySet()) {
-			String v = boxes.get(k);
-			if (v != null) {
+			String v = boxes.get(k).trim();
+			if (v != null && v.length() > 0) {
 				sb.append(Fmt("box %s %s\n", k, CurlyEncode(v)));
 			}
 		}
@@ -480,60 +552,7 @@ public class TurtleActivity extends Activity {
 		}
 	}
 
-	double parseDouble(String s) {
-		final int n = s.length();
-		double roman = 0;
-		int level = 0;
-		for (int i = n - 1; i >= 0; i--) {
-			char c = s.charAt(i);
-			switch (c) {
-			case 'i':
-				if (level > 1) {
-					roman -= 1;
-				} else {
-					roman += 1;
-					level = 1;
-				}
-				break;
-			case 'v':
-				if (level > 5) {
-					roman -= 5;
-				} else {
-					roman += 5;
-					level = 5;
-				}
-				break;
-			case 'x':
-				if (level > 10) {
-					roman -= 10;
-				} else {
-					roman += 10;
-					level = 10;
-				}
-				break;
-			case 'l':
-				if (level > 50) {
-					roman -= 50;
-				} else {
-					roman += 50;
-					level = 50;
-				}
-				break;
-			case 'c':
-				if (level > 100) {
-					roman -= 100;
-				} else {
-					roman += 100;
-					level = 100;
-				}
-				break;
-			default:
-				return Double.parseDouble(s);
-			}
-		}
-		return roman;
-	}
-
+	
 	String[] parseLogo(String a) {
 		a = a.split(";")[0]; // Comment is ';' thru EOF.
 		return removeEmptyStrings(a.split("[\\t\\n\\r ]+"));
@@ -705,7 +724,7 @@ public class TurtleActivity extends Activity {
 		}
 		return z;
 	}
-	
+
 	public void doTestKeyboard() {
 		AKeyboard k = new AKeyboard(this);
 		k.addButton("dup", new Toaster("dup"));
@@ -736,15 +755,18 @@ public class TurtleActivity extends Activity {
 		k.addButton("***", new Toaster("***"));
 		setContentView(k);
 	}
-	
+
 	public class Toaster implements Runnable {
 		String text;
+
 		public Toaster(String text) {
 			this.text = text;
 		}
+
 		@Override
 		public void run() {
-			Toast.makeText(TurtleActivity.this, "Toast [" + text + "]", Toast.LENGTH_SHORT).show();
+			Toast.makeText(TurtleActivity.this, "Toast [" + text + "]",
+					Toast.LENGTH_SHORT).show();
 		}
 	}
 
