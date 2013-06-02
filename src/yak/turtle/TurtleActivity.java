@@ -313,7 +313,7 @@ public class TurtleActivity extends Activity {
 
 	void doRun(final String box) {
 		final String text = boxes.get(box);
-		String[] main = parseLogo(text);
+		String[] main = splitLogoWords(text);
 		ArrayList<Float> v = new LogoMachine(main).runLogo();
 		DrawView dv = new DrawView(this, v);
 		setContentView(dv);
@@ -361,7 +361,7 @@ public class TurtleActivity extends Activity {
 							w = (i < n) ? words[i] : "<EOF>";
 						}
 						if (i < n) {
-							double d = parseDouble();
+							double d = parseExpr();
 							double xx = x + d * Math.cos(a / 180.0 * Math.PI);
 							double yy = y + d * Math.sin(a / 180.0 * Math.PI);
 							if (down) {
@@ -383,7 +383,7 @@ public class TurtleActivity extends Activity {
 							w = (i < n) ? words[i] : "<EOF>";
 						}
 						if (i < n) {
-							double d = parseDouble();
+							double d = parseExpr();
 							a -= d;
 						}
 					} else if (w.charAt(0) == 'r') { // right
@@ -394,7 +394,7 @@ public class TurtleActivity extends Activity {
 							w = (i < n) ? words[i] : "<EOF>";
 						}
 						if (i < n) {
-							double d = parseDouble();
+							double d = parseExpr();
 							a += d;
 						}
 					} else if (w.charAt(0) == 'c') { // color
@@ -405,7 +405,7 @@ public class TurtleActivity extends Activity {
 							w = (i < n) ? words[i] : "<EOF>";
 						}
 						if (i < n) {
-							double d = parseDouble();
+							double d = parseExpr();
 							color = ((int) d % 1000);
 						}
 					} else if (w.equals("u")) { // pen up
@@ -416,7 +416,7 @@ public class TurtleActivity extends Activity {
 						String key = w.substring(1).toUpperCase();
 						String code = boxes.get(key);
 						if (code != null) {
-							new Block(parseLogo(code)).runLogo();
+							new Block(splitLogoWords(code)).runLogo();
 						}
 					} else if (w.equals("!") || w.equals("(")) { // block
 						++i;
@@ -448,7 +448,7 @@ public class TurtleActivity extends Activity {
 							blockWords[j] = t.get(j);
 						}
 						if (i < n) {
-							double d = parseDouble();
+							double d = parseExpr();
 							// Add a new final slot to loopVars, for the
 							// upcoming loop.
 							final int last = loopVars.size();
@@ -469,7 +469,84 @@ public class TurtleActivity extends Activity {
 				}
 			}
 			
+			double parseExpr() {
+				double x = parseDouble();
+				while (true) {
+					// Don't just check that the next i is valid,
+					// but also the one after that.
+					String peek = (i + 2 < n) ? words[i + 1] : "";
+					if (false) {
+						continue;
+					} else if (peek.equals("!=")) {
+						i += 2;
+						w = words[i];
+						x = x != parseDouble() ? 1.0 : 0.0;
+					} else if (peek.equals("<")) {
+						i += 2;
+						w = words[i];
+						x = x < parseDouble() ? 1.0 : 0.0;
+					} else if (peek.equals("<=")) {
+						i += 2;
+						w = words[i];
+						x = x <= parseDouble() ? 1.0 : 0.0;
+					} else if (peek.equals("==")) {
+						i += 2;
+						w = words[i];
+						x = x == parseDouble() ? 1.0 : 0.0;
+					} else if (peek.equals(">")) {
+						i += 2;
+						w = words[i];
+						x = x > parseDouble() ? 1.0 : 0.0;
+					} else if (peek.equals(">=")) {
+						i += 2;
+						w = words[i];
+						x = x >= parseDouble() ? 1.0 : 0.0;
+					} else if (peek.equals("+")) {
+						i += 2;
+						w = words[i];
+						x = x + parseDouble();
+					} else if (peek.equals("-")) {
+						i += 2;
+						w = words[i];
+						x = x - parseDouble();
+					} else if (peek.equals("*")) {
+						i += 2;
+						w = words[i];
+						x = x * parseDouble();
+					} else if (peek.equals("/")) {
+						i += 2;
+						w = words[i];
+						double d = parseDouble();
+						x = (d == 0) ? 0.0 : x / parseDouble();
+					} else if (peek.equals("%")) {
+						i += 2;
+						w = words[i];
+						double d = parseDouble();
+						x = (d == 0) ? 0.0 : x % parseDouble();
+					} else {
+						return x;
+					}
+				}
+			}
+			
 			double parseDouble() {
+				final int s = loopVars.size();
+				if (w.equals("i") && s > 0) {
+					return loopVars.get(s - 1);
+				}
+				if (w.equals("j") && s > 1) {
+					return loopVars.get(s - 2);
+				}
+				if (w.equals("k") && s > 2) {
+					return loopVars.get(s - 3);
+				}
+				if (w.equals("l") && s > 3) {
+					return loopVars.get(s - 4);
+				}
+				if (w.equals("m") && s > 4) {
+					return loopVars.get(s - 5);
+				}
+				// Not an index variable, try number.
 				final int n = w.length();
 				double roman = 0;
 				int level = 0;
@@ -552,8 +629,7 @@ public class TurtleActivity extends Activity {
 		}
 	}
 
-	
-	String[] parseLogo(String a) {
+	String[] splitLogoWords(String a) {
 		a = a.split(";")[0]; // Comment is ';' thru EOF.
 		return removeEmptyStrings(a.split("[\\t\\n\\r ]+"));
 	}
