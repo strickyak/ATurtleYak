@@ -119,17 +119,7 @@ public class TurtleActivity extends Activity {
 			}
 		} catch (Throwable e) {
 			e.printStackTrace();
-			final StringBuilder sb = new StringBuilder();
-			OutputStream out = new OutputStream() {
-				@Override
-				public void write(int arg0) throws IOException {
-					sb.append((char) arg0);
-				}
-			};
-			PrintStream ps = new PrintStream(out);
-			e.printStackTrace(ps);
-			String s = /* e.toString() + "\n" + e.getMessage() + "\n" + */sb
-					.toString();
+			String s = GetStackTrace(e);
 			ATextView tv = new ATextView(this, s);
 			tv.setTextColor(Color.CYAN);
 			SetContentViewWithHomeButtonAndScroll(tv);
@@ -631,7 +621,9 @@ public class TurtleActivity extends Activity {
 
 	String[] splitLogoWords(String a) {
 		a = a.split(";")[0]; // Comment is ';' thru EOF.
-		return removeEmptyStrings(a.split("[\\t\\n\\r ]+"));
+//		a.replaceAll("\\(", " ( ");
+//		a.replaceAll("\\)", " ) ");
+		return removeEmptyStrings(a.toLowerCase().split("[\\t\\n\\r ]+"));
 	}
 
 	String[] removeEmptyStrings(String[] a) {
@@ -950,5 +942,18 @@ public class TurtleActivity extends Activity {
 				return rhs.compareTo(lhs); // Reverse them.
 			}
 		});
+	}
+
+	public static String GetStackTrace(final Throwable e) {
+		final StringBuilder sb = new StringBuilder();
+		final OutputStream out = new OutputStream() {
+			@Override
+			public void write(int ch) throws IOException {
+				sb.append((char) ch);
+			}
+		};
+		final PrintStream ps = new PrintStream(out);
+		e.printStackTrace(ps);
+		return sb.toString();
 	}
 }
